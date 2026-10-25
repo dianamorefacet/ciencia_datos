@@ -1,11 +1,10 @@
 """Pruebas unitarias para el pipeline."""
 
-from unittest.mock import Mock
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 import requests
-
+from dlt.extract.exceptions import ResourceExtractionError
 from pipeline import obtener_personajes
 
 
@@ -85,10 +84,12 @@ def test_respuesta_vacia(mock_get):
 
 @patch("pipeline.requests.get")
 def test_error_conexion(mock_get):
-    mock_get.side_effect = requests.ConnectionError()
+    mock_get.side_effect = requests.ConnectionError("Error de conexión")
 
-    with pytest.raises(requests.ConnectionError):
+    with pytest.raises(ResourceExtractionError) as exc:
         list(obtener_personajes())
+
+    assert "personajes" in str(exc.value)
 
 
 @patch("pipeline.requests.get")
